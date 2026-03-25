@@ -78,6 +78,8 @@ public class UserService {
             emailService.enviarCorreoVerificacion(save.getMail(), activationUrl);
         } catch (MessagingException e) {
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error enviando el correo de verificación"));
         }
 
         return ResponseEntity.ok(Map.of("message", "Usuario registrado, revisa tu correo y verifica la cuenta."));
