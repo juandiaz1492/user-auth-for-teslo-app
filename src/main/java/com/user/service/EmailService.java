@@ -1,26 +1,28 @@
 package com.user.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
+import java.util.Map;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    @Value("${RESEND_API_KEY}")
+    private String resendApiKey;
 
-    public void enviarCorreoVerificacion(String to, String activationUrl) throws MessagingException {
+    private final RestTemplate restTemplate;
 
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    public EmailService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
-        helper.setTo(to);
-        helper.setSubject("Verificación de cuenta - Teslo Shop");
+    public void enviarCorreoVerificacion(String to, String activationUrl) {
 
         String html = """
                 <div style="font-family: Arial, sans-serif; text-align: center; background-color: #0b1a2b; padding: 30px; color: white;">
@@ -48,8 +50,26 @@ public class EmailService {
                 """
                 .formatted(activationUrl);
 
-        helper.setText(html, true);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(resendApiKey);
 
-        mailSender.send(message);
+        Map<String, Object> body = Map.of(
+                "from", "onboarding@resend.dev",
+                "to", to,
+                "subject", "Verificación de cuenta - Teslo Shop",
+                "html", html
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "https://api.resend.com/emails",
+                request,
+                String.class
+        );
+
+        System.out.println("RESEND STATUS: " + response.getStatusCode());
+        System.out.println("RESEND BODY: " + response.getBody());
     }
 }

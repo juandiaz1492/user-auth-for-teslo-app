@@ -25,7 +25,6 @@ import com.user.entities.User;
 import com.user.mapper.UserMapper;
 import com.user.repository.UserRepository;
 
-import jakarta.mail.MessagingException;
 
 @Service
 public class UserService {
@@ -76,10 +75,10 @@ public class UserService {
         String activationUrl = frontendBaseUrl + "/auth/verify?token=" + token;
         try {
             emailService.enviarCorreoVerificacion(save.getMail(), activationUrl);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Error enviando el correo de verificación"));
+                    .body(Map.of("message", "Error enviando correo de verificación"));
         }
 
         return ResponseEntity.ok(Map.of("message", "Usuario registrado, revisa tu correo y verifica la cuenta."));
