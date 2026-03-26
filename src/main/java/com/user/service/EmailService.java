@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class EmailService {
 
-    @Value("${RESEND_API_KEY}")
+    @Value("${resend.api.key}")
     private String resendApiKey;
 
     private final RestTemplate restTemplate;
@@ -58,16 +58,14 @@ public class EmailService {
                 "from", "onboarding@resend.dev",
                 "to", to,
                 "subject", "Verificación de cuenta - Teslo Shop",
-                "html", html
-        );
+                "html", html);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "https://api.resend.com/emails",
                 request,
-                String.class
-        );
+                String.class);
 
         System.out.println("RESEND STATUS: " + response.getStatusCode());
         System.out.println("RESEND BODY: " + response.getBody());
